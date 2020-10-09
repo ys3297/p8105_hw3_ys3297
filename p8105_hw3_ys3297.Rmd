@@ -35,7 +35,7 @@ Load the Instacart data.
 data("instacart")
 ```
 
-The Instacart dataset contains `r nrows(instacart)` rows and `r ncol(instacart)` columns.
+The Instacart dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns.
 
 Each observation in this dataset is a product from an order submitted by a user.
 
@@ -105,3 +105,56 @@ instacart %>%
 The mean hour of the day at which Pink Lady Apples are ordered is generally earlier than that at which Coffee Ice Cream are ordered on each day of the week except on Fridays.
 
 ## Problem 2
+
+Load, tidy, and otherwise wrangle the accel_data.
+
+```{r}
+accel_df = read_csv(file = "./accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minute",
+    names_prefix = "activity_",
+    values_to = "activity_count"
+  ) %>% 
+  mutate(minute = as.double(minute), day = as.factor(day)) %>% 
+  mutate(weekday_vs_weekend = as.factor(
+    ifelse(day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), "Weekday", "Weekend")
+  ))
+```
+
+The resulting dataset `accel_df` include `r nrow(accel_df)` observations and `r ncol(accel_df)` variables.
+
+The variables in this dataset are factor variables `day` indicating the day of the week, and `weekday_vs_weekend` indicating whether the day is weekday or weekend, and numeric variables `week` identifying the week, `day_id` identifying the day, `minute` identifying the minute of the 24-hour day starting at midnight, and `activity_count` indicating the activity count for each minute.
+
+Using the tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals.
+
+```{r}
+accel_df %>% 
+  group_by(day_id) %>% 
+  summarize(total_activity_day = sum(activity_count))
+```
+
+There is no apparent trend in the table.
+
+Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week.
+
+```{r}
+accel_df %>% 
+  group_by(week, day) %>% 
+  summarize(total_activity_day = sum(activity_count)) %>% 
+  mutate(day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
+  ggplot(aes(x = day, y = total_activity_day, color = day)) + 
+    geom_point() + 
+    labs(
+      title = "Daily Activity Plot",
+      x = "Day of the week",
+      y = "Daily activity count"
+    )
+```
+
+Based on the resulting graph, we can see that the daily activity counts for Tuesdays and Wednesdays are less variant, compared to the daily activity counts for other days. This may indicate that the activity level of the male on Tuesdays and Wednesdays is more stable than on other days.
+
+
+
+
