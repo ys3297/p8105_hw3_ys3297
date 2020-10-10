@@ -12,7 +12,7 @@ library(p8105.datasets)
 library(patchwork)
 
 knitr::opts_chunk$set(
-	fig.width = 8, 
+	fig.width = 10, 
   fig.asp = .6,
   out.width = "90%"
 )
@@ -205,7 +205,7 @@ ny_noaa %>%
     labs(
     title = "Average max temperature in January and July across years",
     x = "Year",
-    y = "Average max temperature",
+    y = "Average max temperature (°C)",
     caption = "Colored by station"
     ) + 
     theme(legend.position = "none", panel.spacing = unit(0.5, "lines"))
@@ -228,8 +228,8 @@ tmax_vs_tmin_p =
     geom_smooth(se = FALSE) +
     labs(
       title = "Maximum temperature vs minimum temperature",
-      x = "Maximum temperature (degrees of C)",
-      y = "Minimum temperature (degrees of C)"
+      x = "Maximum temperature (°C)",
+      y = "Minimum temperature (°C)"
     )
 
 snow_by_year_p = 
