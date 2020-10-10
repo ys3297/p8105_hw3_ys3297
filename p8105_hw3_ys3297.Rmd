@@ -132,7 +132,8 @@ The variables in this dataset are factor variables `day` indicating the day of t
 Using the tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals.
 
 ```{r}
-accel_df %>% 
+daily_activity_table =   
+  accel_df %>% 
   group_by(week, day) %>% 
   summarize(total_activity_day = sum(activity_count)) %>% 
   pivot_wider(
@@ -141,6 +142,8 @@ accel_df %>%
   ) %>% 
   relocate("week", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday") %>% 
   knitr::kable()
+
+daily_activity_table
 ```
 
 Based on the resulting table, we can see that the daily activity counts for Tuesdays and Wednesdays are less variant, compared to the daily activity counts for other days. This may indicate that the activity level of the male on Tuesdays and Wednesdays is more stable than on other days.
@@ -148,7 +151,8 @@ Based on the resulting table, we can see that the daily activity counts for Tues
 Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week.
 
 ```{r}
-accel_df %>% 
+daily_activity_course_plot = 
+  accel_df %>% 
   mutate(day = forcats::fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>% 
   ggplot(aes(x = minute, y = activity_count, color = day)) + 
     geom_point() + 
@@ -160,6 +164,8 @@ accel_df %>%
       color = "Day of the week"
     ) + 
     scale_x_continuous(breaks = seq(0, 1440, by = 60))
+
+daily_activity_course_plot
 ```
 
 Based on the resulting graph, we can see that the activity count is generally higher from 360 to 690 minute (6:00 AM to 11:30 AM), from 960 to 1020 minute (4:00 PM to 5:00 PM) and from 1170 to 1320 minute (7:30 PM to 10:00PM), indicating the time ranges of a day when the male is most active.
@@ -171,8 +177,12 @@ Load the NY NOAA data and explore the missing values.
 ```{r}
 data("ny_noaa")
 
-ny_noaa %>% 
-  summarize_all(funs(sum(is.na(.))))
+explore_na = 
+  ny_noaa %>% 
+  summarize_all(funs(sum(is.na(.)))) %>% 
+  knitr::kable()
+
+explore_na
 ```
 
 The NY NOAA dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns.
@@ -198,7 +208,8 @@ For snowfall, the most commonly observed values are `r ny_noaa %>% pull(snow) %>
 Make a two-panel plot showing the average max temperature in January and in July in each station across years.
 
 ```{r}
-ny_noaa %>% 
+mean_tmax_jan_jul_plot = 
+  ny_noaa %>% 
   filter(month %in% c(1, 7)) %>% 
   mutate(month = ifelse(month == 1, "January", "July")) %>% 
   group_by(id, year, month) %>% 
@@ -214,6 +225,8 @@ ny_noaa %>%
     caption = "* Colored by station"
     ) + 
     theme(legend.position = "none", panel.spacing = unit(0.5, "lines"))
+
+mean_tmax_jan_jul_plot
 ```
 
 The average max temperature in January in each station across years fluctuates around 0 degrees C, and the average max temperature in July in each station across years fluctuates around 25 degrees C.
