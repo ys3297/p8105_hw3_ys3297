@@ -131,11 +131,17 @@ Using the tidied dataset, aggregate across minutes to create a total activity va
 
 ```{r}
 accel_df %>% 
-  group_by(day_id) %>% 
-  summarize(total_activity_day = sum(activity_count))
+  group_by(week, day) %>% 
+  summarize(total_activity_day = sum(activity_count)) %>% 
+  pivot_wider(
+    names_from = day,
+    values_from = total_activity_day
+  ) %>% 
+  relocate("week", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday") %>% 
+  knitr::kable()
 ```
 
-There is no apparent trend in the table.
+I can see no apparent trend in the table.
 
 Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week.
 
@@ -155,6 +161,43 @@ accel_df %>%
 
 Based on the resulting graph, we can see that the daily activity counts for Tuesdays and Wednesdays are less variant, compared to the daily activity counts for other days. This may indicate that the activity level of the male on Tuesdays and Wednesdays is more stable than on other days.
 
+## Problem 3
 
+Load the NY NOAA data.
 
+```{r}
+data("ny_noaa")
+```
+
+The NY NOAA dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns.
+
+Each observation in this dataset is a weather record from a weather station on a date.
+
+The variables in this dataset include `id` for the weather station ID, `date` for the date of observation, and other variables about weather details like `prcp` for the precipitation (tenths of mm), `snow` for the snowfall (mm), `snwd` for the snow depth (mm), `tmax` for the maximum temperature (tenths of degrees C), and `tmin` for the minimum temperature (tenths of degrees C).
+
+Missing data is a big issue in this dataset, since a large proportion of weather observations have missing values for variables about weather details, especially for maximum and minimum temperatures.
+
+Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units.
+
+```{r}
+ny_noaa = 
+  ny_noaa %>% 
+  separate(date, into = c("year", "month", "day"), convert = TRUE) %>% 
+  mutate(prcp = prcp / 10, tmax = as.numeric(tmax) / 10, tmin = as.numeric(tmin) / 10)
+```
+
+For snowfall, the most commonly observed values are `r ny_noaa %>% pull(snow) %>% prettyR::Mode()`, because there is no snow observed by most weather stations on most of days.
+
+Make a two-panel plot showing the average max temperature in January and in July in each station across years.
+
+```{r}
+ny_noaa %>% 
+  filter(month %in% c(1, 7)) %>% 
+  group_by(id, year, month) %>% 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = mean_tmax, color = id)) + 
+  geom_point() +
+  facet_grid(~month) + 
+  theme(legend.position = "none")
+```
 
