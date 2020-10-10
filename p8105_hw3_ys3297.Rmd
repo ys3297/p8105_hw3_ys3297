@@ -118,7 +118,8 @@ accel_df = read_csv(file = "./accel_data.csv") %>%
     names_prefix = "activity_",
     values_to = "activity_count"
   ) %>% 
-  mutate(minute = as.double(minute), day = as.factor(day)) %>% 
+  mutate_at(vars(week, day_id, minute), as.integer) %>% 
+  mutate(day = as.factor(day)) %>% 
   mutate(weekday_vs_weekend = as.factor(
     ifelse(day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"), "Weekday", "Weekend")
   ))
@@ -161,14 +162,17 @@ accel_df %>%
     scale_x_continuous(breaks = seq(0, 1440, by = 60))
 ```
 
-Based on the resulting graph, we can see that the activity count is generally highest from 360 to 690 minute (6:00 AM to 11:30 AM) and from 960 to 1320 minute (4:00 PM to 10:00 PM), indicating the time ranges of a day when the male is most active.
+Based on the resulting graph, we can see that the activity count is generally higher from 360 to 690 minute (6:00 AM to 11:30 AM), from 960 to 1020 minute (4:00 PM to 5:00 PM) and from 1170 to 1320 minute (7:30 PM to 10:00PM), indicating the time ranges of a day when the male is most active.
 
 ## Problem 3
 
-Load the NY NOAA data.
+Load the NY NOAA data and explore the missing values.
 
 ```{r}
 data("ny_noaa")
+
+ny_noaa %>% 
+  summarize_all(funs(sum(is.na(.))))
 ```
 
 The NY NOAA dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns.
@@ -177,13 +181,14 @@ Each observation in this dataset is a weather record from a weather station on a
 
 The variables in this dataset include `id` for the weather station ID, `date` for the date of observation, and other variables about weather details like `prcp` for the precipitation (tenths of mm), `snow` for the snowfall (mm), `snwd` for the snow depth (mm), `tmax` for the maximum temperature (tenths of degrees C), and `tmin` for the minimum temperature (tenths of degrees C).
 
-Missing data is a big issue in this dataset, since a large proportion of weather observations have missing values for variables about weather details, especially for maximum and minimum temperatures.
+Missing data is a big issue in this dataset, since a large number of weather observations have missing values for variables about weather details, especially for maximum and minimum temperatures.
 
 Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units.
 
 ```{r}
 ny_noaa = 
   ny_noaa %>% 
+  janitor::clean_names() %>% 
   separate(date, into = c("year", "month", "day"), convert = TRUE) %>% 
   mutate(prcp = prcp / 10, tmax = as.numeric(tmax) / 10, tmin = as.numeric(tmin) / 10)
 ```
@@ -206,7 +211,7 @@ ny_noaa %>%
     title = "Average max temperature in January and July across years",
     x = "Year",
     y = "Average max temperature (°C)",
-    caption = "Colored by station"
+    caption = "* Colored by station"
     ) + 
     theme(legend.position = "none", panel.spacing = unit(0.5, "lines"))
 ```
@@ -228,8 +233,8 @@ tmax_vs_tmin_p =
     geom_smooth(se = FALSE) +
     labs(
       title = "Maximum temperature vs minimum temperature",
-      x = "Maximum temperature (°C)",
-      y = "Minimum temperature (°C)"
+      x = "Minimum temperature (°C)",
+      y = "Maximum temperature (°C)"
     )
 
 snow_by_year_p = 
